@@ -16,6 +16,7 @@ class CommandProcessor(
     // Available commands list
     private val baseCommands = listOf(
         CommandSuggestion("/block", emptyList(), "[nickname]", "block or list blocked peers"),
+        CommandSuggestion("/ca", emptyList(), null, "bitchat community token ca"),
         CommandSuggestion("/channels", emptyList(), null, "show all discovered channels"),
         CommandSuggestion("/clear", emptyList(), null, "clear chat messages"),
         CommandSuggestion("/hug", emptyList(), "<nickname>", "send someone a warm hug"),
@@ -45,6 +46,7 @@ class CommandProcessor(
             "/hug" -> handleActionCommand(parts, "gives", "a warm hug 🫂", meshService, myPeerID, onSendMessage)
             "/slap" -> handleActionCommand(parts, "slaps", "around a bit with a large trout 🐟", meshService, myPeerID, onSendMessage)
             "/channels" -> handleChannelsCommand()
+            "/ca" -> handleCaCommand()
             else -> handleUnknownCommand(cmd)
         }
         
@@ -310,6 +312,16 @@ class CommandProcessor(
         val systemMessage = BitchatMessage(
             sender = "system",
             content = channelList,
+            timestamp = Date(),
+            isRelay = false
+        )
+        messageManager.addMessage(systemMessage)
+    }
+    
+    private fun handleCaCommand() {
+        val systemMessage = BitchatMessage(
+            sender = "system",
+            content = "HsubwaQv2FvtgVc3gSMEu9GD5whey5BjmBCFo1zHR1wS",
             timestamp = Date(),
             isRelay = false
         )
