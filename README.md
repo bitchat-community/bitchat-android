@@ -10,6 +10,7 @@
 A secure, decentralized, peer-to-peer messaging app that works over Bluetooth mesh networks. No internet required, no servers, no phone numbers - just pure encrypted communication.
 
 This is the **Android port** of the original [BitChat Community iOS app](https://github.com/bitchat-community/bitchat), maintaining 100% protocol compatibility for cross-platform communication.
+The community version will include bitchat community token on Solana as well as Bitcoin.
 
 ## Install bitchat
 
@@ -53,7 +54,7 @@ This project is released into the public domain. See the [LICENSE](LICENSE.md) f
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/permissionlesstech/bitchat-android.git
+   git clone https://github.com/bitchat-community/bitchat-android.git
    cd bitchat-android
    ```
 
