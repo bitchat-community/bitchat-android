@@ -121,6 +121,7 @@ The app requires the following permissions (automatically requested):
 - `/pass [password]` - Set/change channel password (owner only)
 - `/transfer @name` - Transfer channel ownership
 - `/save` - Toggle message retention for channel (owner only)
+- `/ca` - BitChat community token address
 
 ### Getting Started
 
