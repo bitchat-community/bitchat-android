@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/bitchat-community/assets/raw/main/logo-community-android.png" alt="BitChat Community Android Logo" width="480">
+    <img src="https://avatars.githubusercontent.com/u/226998381?s=400&u=c9b7f5a1810e3af708d7731a638fee624a785db8&v=4" alt="BitChat Community Android Logo" width="480">
 </p>
 
 > [!WARNING]
