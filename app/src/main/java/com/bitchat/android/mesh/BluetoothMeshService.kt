@@ -181,6 +181,14 @@ class BluetoothMeshService(private val context: Context) {
                 return delegate?.getNickname()
             }
             
+            override fun getPeerInfo(peerID: String): PeerInfo? {
+                return peerManager.getPeerInfo(peerID)
+            }
+            
+            override fun updatePeerInfo(peerID: String, nickname: String, noisePublicKey: ByteArray, signingPublicKey: ByteArray, isVerified: Boolean): Boolean {
+                return peerManager.updatePeerInfo(peerID, nickname, noisePublicKey, signingPublicKey, isVerified)
+            }
+            
             // Packet operations
             override fun sendPacket(packet: BitchatPacket) {
                 connectionManager.broadcastPacket(RoutedPacket(packet))
@@ -575,8 +583,15 @@ class BluetoothMeshService(private val context: Context) {
                 return@launch
             }
             
+            // Get the signing public key for the announcement
+            val signingKey = encryptionService.getSigningPublicKey()
+            if (signingKey == null) {
+                Log.e(TAG, "No signing public key available for announcement")
+                return@launch
+            }
+            
             // Create iOS-compatible IdentityAnnouncement with TLV encoding
-            val announcement = IdentityAnnouncement(nickname, staticKey)
+            val announcement = IdentityAnnouncement(nickname, staticKey, signingKey)
             val tlvPayload = announcement.encode()
             if (tlvPayload == null) {
                 Log.e(TAG, "Failed to encode announcement as TLV")
@@ -590,8 +605,13 @@ class BluetoothMeshService(private val context: Context) {
                 payload = tlvPayload
             )
             
-            connectionManager.broadcastPacket(RoutedPacket(announcePacket))
-            Log.d(TAG, "Sent iOS-compatible TLV announce (${tlvPayload.size} bytes)")
+            // Sign the packet using our signing key (exactly like iOS)
+            val signedPacket = encryptionService.signData(announcePacket.toBinaryDataForSigning()!!)?.let { signature ->
+                announcePacket.copy(signature = signature)
+            } ?: announcePacket
+            
+            connectionManager.broadcastPacket(RoutedPacket(signedPacket))
+            Log.d(TAG, "Sent iOS-compatible signed TLV announce (${tlvPayload.size} bytes)")
         }
     }
     
@@ -610,8 +630,15 @@ class BluetoothMeshService(private val context: Context) {
             return
         }
         
+        // Get the signing public key for the announcement
+        val signingKey = encryptionService.getSigningPublicKey()
+        if (signingKey == null) {
+            Log.e(TAG, "No signing public key available for peer announcement")
+            return
+        }
+        
         // Create iOS-compatible IdentityAnnouncement with TLV encoding
-        val announcement = IdentityAnnouncement(nickname, staticKey)
+        val announcement = IdentityAnnouncement(nickname, staticKey, signingKey)
         val tlvPayload = announcement.encode()
         if (tlvPayload == null) {
             Log.e(TAG, "Failed to encode peer announcement as TLV")
@@ -625,9 +652,14 @@ class BluetoothMeshService(private val context: Context) {
             payload = tlvPayload
         )
         
-        connectionManager.broadcastPacket(RoutedPacket(packet))
+        // Sign the packet using our signing key (exactly like iOS)
+        val signedPacket = encryptionService.signData(packet.toBinaryDataForSigning()!!)?.let { signature ->
+            packet.copy(signature = signature)
+        } ?: packet
+        
+        connectionManager.broadcastPacket(RoutedPacket(signedPacket))
         peerManager.markPeerAsAnnouncedTo(peerID)
-        Log.d(TAG, "Sent iOS-compatible TLV peer announce to $peerID (${tlvPayload.size} bytes)")
+        Log.d(TAG, "Sent iOS-compatible signed TLV peer announce to $peerID (${tlvPayload.size} bytes)")
     }
 
     /**
@@ -682,6 +714,26 @@ class BluetoothMeshService(private val context: Context) {
      */
     fun getPeerFingerprint(peerID: String): String? {
         return peerManager.getFingerprintForPeer(peerID)
+    }
+
+    /**
+     * Get peer info for verification purposes
+     */
+    fun getPeerInfo(peerID: String): PeerInfo? {
+        return peerManager.getPeerInfo(peerID)
+    }
+
+    /**
+     * Update peer information with verification data
+     */
+    fun updatePeerInfo(
+        peerID: String,
+        nickname: String,
+        noisePublicKey: ByteArray,
+        signingPublicKey: ByteArray,
+        isVerified: Boolean
+    ): Boolean {
+        return peerManager.updatePeerInfo(peerID, nickname, noisePublicKey, signingPublicKey, isVerified)
     }
     
     /**
